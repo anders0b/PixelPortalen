@@ -1,0 +1,233 @@
+﻿@page "/"
+@using PixelPortalen.Domain.Entities
+@using PixelPortalen.Application.Interfaces
+@using PixelPortalen.Infrastructure.DataAccess.Auth
+@using PixelPortalen.WebApp.Components.Dialogs
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using Microsoft.CodeAnalysis.CSharp.Syntax
+@inject IOrderService<OrderEntity> OrderService
+@inject IProductService<ProductEntity> ProductService
+@inject IEventService<EventEntity> EventService
+@inject ProtectedLocalStorage ProtectedLocalStore
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+@if (EventList.Count == 0)
+{
+    <MudText>Det finns inga evenemang planerade just nu. Kolla in senare!</MudText>
+}
+else
+{
+    <MudCarousel Style="height:400px;" ShowArrows="true" ShowBullets="false" EnableSwipeGesture="true" AutoCycle="true" TData="object">
+        <MudCarouselItem Transition="Transition.Slide" Class="glassbox">
+            <MudStack Class="d-flex" AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Class="shadowfont" Typo="Typo.h2">Våra uppkommande evenemang</MudText>
+                <MudImage Elevation="25" Class="rounded-lg" Src=".\Resources\image2darker.png" Height="280" Width="280"></MudImage>
+            </MudStack>
+        </MudCarouselItem>
+        <Virtualize Items="EventList" Context="eventitem">
+            <MudCarouselItem Transition="Transition.Slide" Class="glassbox">
+                <MudContainer>
+                    <MudGrid>
+                        <MudItem xs="4">
+                            @if (@eventitem.Name == "Barhäng")
+                            {
+                                <MudImage Elevation="25" Height="350" Class="rounded-lg" Src=".\Resources\barevent.jpeg"></MudImage>
+                            }
+                            else if (@eventitem.Name == "LAN")
+                            {
+                                <MudImage Elevation="25" Height="350" Class="rounded-lg" Src=".\Resources\lanparty.jpg"></MudImage>
+                            }
+                            else
+                            {
+                                <MudImage Elevation="25" Class="rounded-lg" Src=".\Resources\image2darker.png" Height="350"></MudImage>
+
+                            }
+
+
+                        </MudItem>
+                        <MudItem xs="8">
+                            <MudPaper Elevation="5" Class="glassbox ms-6" Height="350px">
+                                <MudText Class="shadowfont" Typo="Typo.h2">@eventitem.Name</MudText>
+                                <MudText Class="shadowfont" Typo="Typo.h6">@eventitem.EventDate.DayOfWeek @eventitem.EventDate.Day/@eventitem.EventDate.Month</MudText>
+                                <MudText Class="shadowfont" Typo="Typo.body2">@eventitem.EventDescription</MudText>
+                                <MudChip Class="mt-2 mud-elevation-3" Icon="@Icons.Material.Filled.Person" Color="Color.Success">@eventitem.userIds.Count / @eventitem.AvailableSlots anmälda</MudChip>
+                                <MudChip Class="mud-elevation-3" Icon="@Icons.Material.Filled.Wallet" Color="Color.Info">@eventitem.Price kr</MudChip>
+                                <MudChip Class="mud-elevation-3" Icon="@Icons.Material.Filled.AccessTimeFilled" Color="Color.Warning">@eventitem.EventDate.Hour:@eventitem.EventDate.Minute</MudChip>
+                                <MudButton Variant="Variant.Filled" Color="Color.Info">Anmäl dig här</MudButton>
+                            </MudPaper>
+                        </MudItem>
+                    </MudGrid>
+                </MudContainer>
+                
+                @* <MudStack Class="py-5" AlignItems="AlignItems.Center" Justify="Justify.Center">
+                    <MudText Typo="Typo.h2">@eventitem.EventDate.DayOfWeek @eventitem.EventDate.Day/@eventitem.EventDate.Month</MudText>
+                    <MudText Typo="Typo.h3">@eventitem.Name</MudText>
+                    <MudStack Row="true">
+                        <MudChip Icon="@Icons.Material.Filled.Person" Color="Color.Success">@eventitem.userIds.Count / @eventitem.AvailableSlots anmälda</MudChip>
+                        <MudChip Icon="@Icons.Material.Filled.Wallet" Color="Color.Info">@eventitem.Price kr</MudChip>
+                        <MudChip Icon="@Icons.Material.Filled.AccessTimeFilled" Color="Color.Warning">@eventitem.EventDate.Hour:@eventitem.EventDate.Minute</MudChip>
+                    </MudStack>
+                    <MudText Typo="Typo.body2">@eventitem.EventDescription</MudText>
+                    <MudButton Variant="Variant.Filled" Color="Color.Info">Anmäl dig här</MudButton>
+                </MudStack> *@
+            </MudCarouselItem>
+        </Virtualize>
+    </MudCarousel>
+}
+<MudContainer>
+    <MudPaper Style="background: transparent" Class="pb-6" Elevation="0">
+        <MudText Style="color: white" Class="my-4 shadowfont" Typo="Typo.h2">Bästsäljare</MudText>
+        <MudGrid>
+            <Virtualize Items="Products.OrderByDescending(p => p.Reviews.Count).Take(4).ToList()" Context="product">
+                <MudItem Class="d-flex" lg="3" xs="6">
+                    <MudCard>
+                        <MudCardMedia Height="400" Image="@product.ImageUrl"/>
+                        <MudCardContent>
+                            <MudText Typo="Typo.h5">@product.Name</MudText>
+                            <MudRating ReadOnly="true" SelectedValue="@AverageReview(product)" Class="mt-1"/>
+                            <MudText Typo="Typo.h6">@product.Price kr</MudText>
+                        </MudCardContent>
+                        <MudCardActions Style="flex-grow: 1">
+                            <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Info" OnClick="@(() => SaveStateAsync(product, 1))">Lägg i varukorg</MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="@(() => ReadMore(product))">Läs mer</MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            </Virtualize>
+        </MudGrid>
+        <MudText Style="color: white" Class="my-4 shadowfont" Typo="Typo.h2">Börje rekommenderar</MudText>
+        <MudGrid>
+            <Virtualize Items="Products.OrderByDescending(p => p.Price).Take(4).ToList()" Context="product">
+                <MudItem Class="d-flex" lg="3" xs="6">
+                    <MudCard>
+                        <MudCardMedia Height="400" Image="@product.ImageUrl"/>
+                        <MudCardContent>
+                            <MudText Typo="Typo.h5">@product.Name</MudText>
+                            <MudText Typo="Typo.h6">@product.Price kr</MudText>
+                        </MudCardContent>
+                        <MudCardActions Style="flex-grow: 1">
+                            <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Info" OnClick="@(() => SaveStateAsync(product, 1))">Lägg i varukorg</MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="@(() => ReadMore(product))">Läs mer</MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            </Virtualize>
+        </MudGrid>
+    </MudPaper>
+</MudContainer>
+
+
+@code {
+    public List<EventEntity> EventList { get; set; } = new();
+    public List<ProductEntity> ThreeProd { get; set; } = new();
+    public List<ProductEntity> Products { get; set; } = new();
+    public List<OrderEntity> OrderEntities { get; set; } = new();
+    public List<ProductEntity> Cart { get; set; } = new();
+    public int Quantity { get; set; }
+    public ApplicationUser ApplicationUser { get; set; }
+    public OrderEntity OrderEntity { get; set; }
+
+
+    public async Task SaveStateAsync(ProductEntity product, int quantity)
+    {
+        var loggedInUserId = await ProtectedLocalStore.GetAsync<ApplicationUser>("user");
+        var potentialOrder = await ProtectedLocalStore.GetAsync<OrderEntity>("order");
+        var cart = await ProtectedLocalStore.GetAsync<List<ProductEntity>>("cart");
+        Cart = cart.Success ? cart.Value : Cart = new List<ProductEntity>();
+
+        if (loggedInUserId.Success) // If user is logged in
+        {
+            var usersOrder = await OrderService.GetByUserIdAsync(loggedInUserId.Value.Id);
+            var openOrder = usersOrder.FirstOrDefault(order => order.Open);
+            if (openOrder == null)
+            {
+                var newOrder = new OrderEntity() { UserId = Guid.Parse(loggedInUserId.Value.Id), Open = true };
+                newOrder = await OrderService.CreateOrderAsync(newOrder);
+                newOrder.UserId = Guid.Parse(loggedInUserId.Value.Id);
+                newOrder.Open = true;
+                newOrder.OrderDate = DateTime.Now;
+                var newOrderItem = new OrderItemEntity() { OrderId = newOrder.Id, ProductId = product.Id, Quantity = quantity };
+                newOrder.OrderItems.Add(newOrderItem);
+                await OrderService.CreateOrderItemAsync(newOrderItem);
+                Cart.Add(product);
+                await ProtectedLocalStore.SetAsync("cart", Cart);
+            }
+            else
+            {
+                var newOrderItem = new OrderItemEntity() { OrderId = openOrder.Id, ProductId = product.Id, Quantity = quantity };
+                openOrder.OrderItems.Add(newOrderItem);
+                await OrderService.CreateOrderItemAsync(newOrderItem);
+                Cart.Add(product);
+                await ProtectedLocalStore.SetAsync("cart", Cart);
+            }
+
+
+        }
+        else
+        {
+            if (potentialOrder.Success) // If guest has an active cart
+            {
+                var newOrderItem = new OrderItemEntity()
+                    {
+                        OrderId = potentialOrder.Value.Id,
+                        ProductId = product.Id,
+                        Quantity =
+                        quantity
+                    };
+                potentialOrder.Value.OrderItems.Add(newOrderItem);
+                await OrderService.CreateOrderItemAsync(newOrderItem);
+                await ProtectedLocalStore.SetAsync("order", potentialOrder.Value);
+                Cart.Add(product);
+                await ProtectedLocalStore.SetAsync("cart", Cart);
+            }
+            else
+            {
+                var newOrder = new OrderEntity() { Open = true };
+                newOrder = await OrderService.CreateOrderAsync(newOrder);
+                newOrder.Open = true;
+                newOrder.OrderDate = DateTime.Now;
+                var newOrderItem = new OrderItemEntity() { OrderId = newOrder.Id, ProductId = product.Id, Quantity = quantity };
+                newOrder.OrderItems.Add(newOrderItem);
+                await OrderService.CreateOrderItemAsync(newOrderItem);
+                await ProtectedLocalStore.SetAsync("order", newOrder);
+                Cart.Add(product);
+                await ProtectedLocalStore.SetAsync("cart", Cart);
+            }
+        }
+        Snackbar.Add("Du har lagt till produkten i kundvagnen", Severity.Success);
+
+    }
+
+    private void ReadMore(ProductEntity product)
+    {
+        var parameters = new DialogParameters<ProductReadMoreDialog>();
+        parameters.Add(x => x.product, product);
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        DialogService.Show<ProductReadMoreDialog>(product.Name, parameters, options);
+    }
+    
+    protected async override Task OnInitializedAsync()
+    {
+        EventList.AddRange(await EventService.GetAllAsync());
+        OrderEntities.AddRange(await OrderService.GetAllAsync());
+        Products.AddRange(await ProductService.GetAllProducts());
+        
+    }
+    private int AverageReview(ProductEntity product)
+    {
+        var reviews = product.Reviews;
+        var sum = 0;
+        foreach (var review in reviews)
+        {
+            sum += review.Rating;
+        }
+        if (reviews.Count == 0)
+        {
+            return 0;
+        }
+        var average = sum / reviews.Count;
+        return average;
+    }
+
+}

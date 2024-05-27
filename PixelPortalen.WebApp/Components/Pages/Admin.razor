@@ -1,0 +1,117 @@
+﻿@page "/admin"
+@inject HttpClient httpClient
+@using PixelPortalen.Application.Interfaces
+@using PixelPortalen.Domain.Entities
+@using PixelPortalen.Domain.Enums
+@using Microsoft.AspNetCore.Authorization
+@inject IProductService<ProductEntity> ProductService
+@attribute [Authorize(Roles = "Admin")]
+@inject NavigationManager NavigationManager
+
+
+<PageTitle>Admin - Add Product</PageTitle>
+
+<div>
+    <button onclick="location.href='/add-event';"  class="btn btn-primary">Add Event</button>
+</div>
+
+<div>
+    <button onclick="location.href='Edit-event';" class="btn btn-success">Edit event</button>
+</div>
+
+<div class="container mt-5">
+    <h1>Add New Product</h1>
+    <div class="card">
+        <div class="card-body">
+            <EditForm Model="@product" OnValidSubmit="HandleValidSubmit">
+                <div class="mb-3">
+                    <label style="color: black" for="ean" class="form-label">EAN:</label>
+                    <input type="text" class="form-control" id="ean" @bind="@product.EAN" />
+                </div>
+                <div class="mb-3">
+                    <label style="color: black" for="name" class="form-label">Name:</label>
+                    <input type="text" class="form-control" id="name" @bind="@product.Name" />
+                </div>
+                <div class="mb-3">
+                    <label style="color: black" for="price" class="form-label">Price:</label>
+                    <input type="number" class="form-control" id="price" @bind="@product.Price" />
+                </div>
+                <div class="mb-3">
+                    <label style="color: black" for="description" class="form-label">Description:</label>
+                    <textarea class="form-control" id="description" @bind="@product.Description"></textarea>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="openBox" @bind="@product.OpenBox" />
+                    <label style="color: black" class="form-check-label" for="openBox">Open Box:</label>
+                </div>
+                <div class="mb-3">
+                    <label style="color: black" for="system" class="form-label">System:</label>
+                    <select class="form-control" id="system" @bind="@product.System">
+                        @foreach (var system in Enum.GetValues<GameSystem>())
+                        {
+                            <option value="@system">@system</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label style="color: black" for="rating" class="form-label">Rating:</label>
+                    <select class="form-control" id="rating" @bind="@product.Rating">
+                        @foreach (var rating in Enum.GetValues<Rating>())
+                        {
+                            <option value="@rating">@rating</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label style="color: black" class="form-label">Categories:</label>
+                    @foreach (var category in Enum.GetValues<Category>())
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox"
+                                   @onclick="() => ToggleCategory(category)"
+                                   checked="@selectedCategories.Contains(category)" />
+                            <label style="color: black" class="form-check-label">@category.ToString()</label>
+                        </div>
+                    }
+                </div>
+                <div class="mb-3">
+                    <label style="color: black" for="imageUrl" class="form-label">Image URL:</label>
+                    <input type="text" class="form-control" id="imageUrl" @bind="@product.ImageUrl" />
+                </div>
+                <div class="mb-3">
+                    <label style="color: black" for="percentage" class="form-label">Percentage:</label>
+                    <input type="number" class="form-control" id="percentage" @bind="@product.Percentage" />
+                </div>
+                <button type="submit" class="btn btn-primary">Add Product</button>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ProductEntity product = new ProductEntity();
+    private List<Category> selectedCategories = new List<Category>();
+
+    private void ToggleCategory(Category category)
+    {
+        if (selectedCategories.Contains(category))
+        {
+            selectedCategories.Remove(category);
+        }
+        else
+        {
+            selectedCategories.Add(category);
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        product.Categories = selectedCategories.ToList();
+
+      
+        await ProductService.AddProduct(product);
+        Console.WriteLine("Product added successfully");
+        product = new ProductEntity(); 
+        selectedCategories.Clear(); 
+    }
+}

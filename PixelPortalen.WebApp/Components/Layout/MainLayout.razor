@@ -1,0 +1,81 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using PixelPortalen.Infrastructure.DataAccess.Auth
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
+@inject ProtectedLocalStorage ProtectedLocalStore
+
+
+
+<MudThemeProvider></MudThemeProvider> 
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    @if (NavigationManager.Uri.Contains("/Account/"))
+    {
+        <AccountMenuHeader></AccountMenuHeader>
+    }
+    else
+    {
+        <Header></Header>
+    }
+
+    <div hidden="true">
+        <AuthorizeView>
+            @GetUser(@context)
+        </AuthorizeView>
+    </div>
+    
+   
+    
+    
+	
+    @*Lägger detta utanför då den inte gillar mudblazors/blazors js*@
+    @* <form action="Account/Logout" method="post" id="logout">
+		
+		<AntiforgeryToken></AntiforgeryToken>
+		<input type="hidden" name="ReturnUrl" value="@currentUrl"/>
+
+	</form> *@
+	
+
+    @* <button type="submit" class="nav-link">
+		<span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> APPA
+	</button> *@
+
+    <MudMainContent Class="mb-0" Style="min-height: 95vh; background: url(../../Resources/bg-gamle.png); background-size:cover; background-attachment:fixed">
+
+    @if (NavigationManager.Uri == NavigationManager.BaseUri)
+    {
+        @Body
+
+    }
+    else
+    {
+            <MudContainer Class="glassbox mud-elevation-3">
+            @Body
+        </MudContainer>
+    }
+    </MudMainContent>
+    <Footer></Footer>
+</MudLayout>
+
+@code
+{
+    public string UserId { get; set; }
+
+    public async Task GetUser(AuthenticationState context)
+    {
+        var potentialUserId = await ProtectedLocalStore.GetAsync<ApplicationUser>("user");
+        if (!potentialUserId.Success)
+        {
+            var user = context.User;
+            var applicationUser = await UserManager.GetUserAsync(user);
+            await ProtectedLocalStore.SetAsync("user", applicationUser);
+        }
+        
+    }
+}
+    

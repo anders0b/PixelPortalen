@@ -1,0 +1,40 @@
+﻿@page "/event/payforevent"
+@using PixelPortalen.Domain.Entities
+@using PixelPortalen.Application.Interfaces
+@using PixelPortalen.WebApp.Components.Pages
+@inject IEventService<EventEntity> EventService
+@inject ISnackbar Snackbar
+@inject NavigationManager _navigationManager
+<MudDialog>
+    <DialogContent>
+        @ContentText
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Pay">Betala</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="Cancel">Avbryt</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public string ContentText { get; set; }
+    [Parameter] public EventEntity EventEntity { get; set; }
+    [Parameter] public string UserGuid { get; set; }
+
+    void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel);
+        _navigationManager.NavigateTo("/events", true);
+    }
+
+    async Task Pay()
+    {
+        EventEntity.userIds.Add(UserGuid);
+        await EventService.UpdateUserToEvent(EventEntity);
+        Snackbar.Add("Du är registrerad! Vi skickar dig vidare", Severity.Success);
+        MudDialog.Close(DialogResult.Ok(true));
+        StateHasChanged();
+        await Task.Delay(2000);
+        _navigationManager.NavigateTo("/events", true);
+    } 
+}

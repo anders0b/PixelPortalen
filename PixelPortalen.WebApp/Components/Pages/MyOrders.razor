@@ -1,0 +1,156 @@
+﻿@using PixelPortalen.Domain.Entities
+@using PixelPortalen.Application.Interfaces
+@using Microsoft.AspNetCore.Identity
+@using PixelPortalen.Infrastructure.DataAccess.Auth
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using PixelPortalen.WebApp.Components.Dialogs
+@inject IOrderService<OrderEntity> OrderService
+@inject IProductService<ProductEntity> ProductService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@inject UserManager<ApplicationUser> UserManager
+@inject ProtectedLocalStorage ProtectedLocalStore
+@attribute [Authorize]
+@page "/myorders"
+
+
+    
+
+<div hidden="true">
+    <AuthorizeView>
+        @GetUser(@context)
+    </AuthorizeView>
+</div>
+
+<MudGrid Justify="Justify.SpaceAround">
+    <MudItem xs="12">
+        <MudText Typo="Typo.h3" Align="Align.Center">Din orderhistorik</MudText>
+    </MudItem>
+    <MudItem xs="12" lg="6">
+        
+        <MudExpansionPanels>
+            <Virtualize Context="order" ItemsProvider="ItemsProvider">
+                <MudExpansionPanel Text="@GetOrderId(order)" >
+                    <MudPaper>
+                        <MudContainer>
+                            @if (order.Open)
+                            {
+                                <MudText Typo="Typo.h6">Status: Öppen</MudText>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.h6">Status: Stängd</MudText>
+                            }
+                            <MudText Typo="Typo.h6">Datum: @order.OrderDate</MudText>
+                            <MudDivider Class="my-2"></MudDivider>
+                            <div>
+                                @foreach (var orderItem in order.OrderItems)
+                                {
+                                    var product = Products.FirstOrDefault(p => p.Id == orderItem.ProductId);
+                                    if (product != null)
+                                    {
+                                        <div>
+                                            <span>@product.Name - Quantity: @orderItem.Quantity - 
+                                                @if (CheckReviews(product))
+                                                {
+                                                    <MudButton OnClick="@(() => WriteReview(product))" Color="Color.Info">Skriv recension</MudButton>
+                                                }
+                                                else
+                                                {
+                                                    <MudButton Disabled="true" Color="Color.Success">Du har lämnat en recension</MudButton>
+                                                    <MudButton OnClick="@(() => RemoveReview(product))" Color="Color.Error">Ta bort recension</MudButton>
+                                                }
+                                                </span>
+                                            <br />
+                                        </div>
+                                    }
+                                    
+                                }
+                                <MudDivider Class="my-5"></MudDivider>
+                            </div>
+                        </MudContainer>
+                        
+                    </MudPaper>
+                </MudExpansionPanel>
+            </Virtualize>
+
+        </MudExpansionPanels>
+
+    </MudItem>
+</MudGrid>
+
+@code {
+    public List<OrderEntity> Orders { get; set; } = new();
+    public bool isConnected { get; set; }
+    public string UserId { get; set; }
+    public List<ProductEntity> Products { get; set; } = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        Orders.AddRange(await OrderService.GetByUserIdAsync(UserId));
+        Products.AddRange(await ProductService.GetAllProducts());
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var potentialUserId = await ProtectedLocalStore.GetAsync<ApplicationUser>("user");
+            UserId = potentialUserId.Value.Id;
+            StateHasChanged();
+        }
+    }
+
+    public async Task GetUser(AuthenticationState context)
+    {
+
+        var user = context.User;
+        var applicationUser = await UserManager.GetUserAsync(user);
+        UserId = applicationUser.Id;
+    }
+
+
+    private async ValueTask<ItemsProviderResult<OrderEntity>> ItemsProvider(ItemsProviderRequest request)
+    {
+        Orders.Clear();
+        Orders.AddRange(await OrderService.GetByUserIdAsync(UserId));
+        var numOrderProducts = Orders.Count;
+        StateHasChanged();
+        return new ItemsProviderResult<OrderEntity>(Orders,numOrderProducts);
+    }
+
+    private string? GetOrderId(OrderEntity order)
+    {
+        string inputString = order.Id;
+        string lastFourCharacters = $"Order ID: {inputString.Substring(inputString.Length - 4)}";
+        return lastFourCharacters;
+        
+    }
+    private bool CheckReviews(ProductEntity product)
+    {
+        var test = product.Reviews.FirstOrDefault(r => r.UserId == UserId);
+        if (test != null)
+        {
+            return false;
+        }
+        return true;
+    }
+    private void WriteReview(ProductEntity product)
+    {
+        var parameters = new DialogParameters<WriteReviewDialog>();
+        parameters.Add(x => x.product, product);
+        parameters.Add(x => x.userId, UserId);
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        DialogService.Show<WriteReviewDialog>(product.Name, parameters, options);
+    }
+    private void RemoveReview(ProductEntity product)
+    {
+        var review = product.Reviews.FirstOrDefault(r => r.UserId == UserId);
+        product.Reviews.Remove(review);
+        ProductService.UpdateReviewsAsync(product);
+        StateHasChanged();
+    }
+
+}

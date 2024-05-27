@@ -1,0 +1,149 @@
+﻿@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using Microsoft.AspNetCore.Identity
+@using PixelPortalen.Domain.Entities
+@using PixelPortalen.Infrastructure.DataAccess.Auth
+@using PixelPortalen.WebApp.Services
+@inject ProtectedLocalStorage ProtectedLocalStore
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager _navigationManager
+
+<MudBreakpointProvider>
+    <MudAppBar Elevation="1" Color="Color.Primary" Fixed="true">
+        <MudStack>
+            <a class="mt-6" href="/">
+                <MudImage Class="me-2" Height="40" Src=".\Resources\new-logo.svg"></MudImage>
+            </a>
+            <MudPaper Class="mt-n2 mud-theme-secondary">
+            <MudText Class="shadowfont" Align="Align.Center" Typo="Typo.h6">GAMLESTADEN</MudText>
+            </MudPaper>
+        </MudStack>
+        <!-- <MudLink Color="Color.Inherit" Href="/" Typo="Typo.h5" Class="madimi-one-regular me-6">PixelPortalen</MudLink> -->
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <AuthorizeView Roles="Admin">
+                <MudIconButton Class="me-6 " Icon="@Icons.Material.Filled.AdminPanelSettings" Color="Color.Inherit" Edge="Edge.Start" Href="/admin"/>
+            </AuthorizeView>
+            @* <MudIconButton Class="me-6 " Icon="@Icons.Material.Filled.VideogameAsset" Color="Color.Inherit" Edge="Edge.Start" Href="/product"/> *@
+@*             <MudSpacer/>
+ *@
+            <a href="/product">
+                <MudImage Class="ms-6" Src=".\Resources\spel.svg" Height="30"></MudImage>
+@*                 <MudImage Class="me-6" Src=".\Resources\spel.svg" Height="65"></MudImage>
+ *@            </a>
+@*             <MudSpacer/>
+ *@            <a href="/events">
+                <MudImage Class="ms-6" Src=".\Resources\events.svg" Height="30"></MudImage>
+@*                 <MudImage Class="" Src=".\Resources\events.svg" Height="80"></MudImage>
+ *@            </a>
+
+            @* <MudIconButton Class="me-6 " Icon="@Icons.Material.Filled.Event" Color="Color.Inherit" Edge="Edge.Start" Href="/events"/> *@
+            <MudSpacer/>
+        </MudHidden>
+        <MudHidden Breakpoint="Breakpoint.MdAndUp">
+        <MudSpacer/>
+        </MudHidden>
+        <MudIconButton Icon="@Icons.Material.Filled.ShoppingCart" Color="Color.Inherit" Edge="Edge.Start" Href="/checkout"/>
+        <MudText Class="me-2">@CartAmount</MudText>
+        <AuthorizeView>
+            <Authorized>
+                <div class="pe-2">
+                    <MudMenu>
+                        <ActivatorContent>
+                            @* <MudAvatar  Color="Color.Secondary">@Initials</MudAvatar> *@
+                            <MudAvatar>
+                                <MudImage Style="border-radius: 50%" Src=".\Resources\racoon-pedro.gif"></MudImage>
+                            </MudAvatar>
+                        </ActivatorContent>
+                        <ChildContent>
+                            <MudMenuItem Href="/account/manage">Mitt konto</MudMenuItem>
+                            <MudMenuItem Href="/myorders">Mina ordrar</MudMenuItem>
+                            <MudMenuItem Href="/event-history">Evenemang</MudMenuItem>
+                            <MudMenuItem>
+                                <button type="submit" form="logout">Logout</button>
+                            </MudMenuItem>
+                        </ChildContent>
+                    </MudMenu>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                    <div class="pe-2">
+                        <a href="/account/login">
+                            <MudImage Class="ms-6" Src=".\Resources\log-in.svg" Height="30"></MudImage>
+                        </a>
+@*                         <MudLink Color="Color.Inherit" Href="account/login" Typo="Typo.body1">Logga in</MudLink>
+ *@                    </div>
+                </MudHidden>
+            </NotAuthorized>
+        </AuthorizeView>
+        <MudHidden Breakpoint="Breakpoint.MdAndUp">
+            <MudMenu Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit">
+                <AuthorizeView Roles="Admin">
+                <MudMenuItem Href="/admin">Admin</MudMenuItem>
+                </AuthorizeView>
+                <MudMenuItem Href="/product">Produkter</MudMenuItem>
+                <MudMenuItem Href="/events">Evenemang</MudMenuItem>
+                <AuthorizeView>
+                    <NotAuthorized>
+                        <MudMenuItem Href="account/login" Typo="Typo.body1">Logga in</MudMenuItem>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </MudMenu>
+        </MudHidden>
+    </MudAppBar>
+</MudBreakpointProvider>
+
+<form action="Account/Logout" method="post" id="logout">
+		
+    <AntiforgeryToken></AntiforgeryToken>
+    <input type="hidden" name="ReturnUrl" value="@currentUrl"/>
+</form>
+<button type="submit" class="nav-link">
+    <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> APPA
+</button>
+
+@code {
+    private string Initials { get; set; }
+    public bool isConnected { get; set; }
+    public ApplicationUser CurrentUser { get; set; }
+    public static int CartAmount { get; set; } = 0;
+    private string? currentUrl;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            currentUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+            _navigationManager.LocationChanged += OnLocationChanged;
+            isConnected = true;
+            await LoadStateAsync();
+            StateHasChanged();
+
+        }
+    }
+    private async Task LoadStateAsync()
+    {
+        var potentialUser = await ProtectedLocalStore.GetAsync<ApplicationUser>("user");
+        CurrentUser = potentialUser.Success ? potentialUser.Value : CurrentUser = null;
+        if(CurrentUser == null)
+        {
+            return;
+        }
+        Initials = CurrentUser.Email.Substring(0,1);
+        var cartResult = await ProtectedLocalStore.GetAsync<List<ProductEntity>>("cart");
+        CartAmount = cartResult.Success ? cartResult.Value.Count : CartAmount = 0;
+    }
+
+    public void Dispose()
+    {
+        _navigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = _navigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+    //<MudImage Class="me-6" Height="45" Src=".\Resources\logo.svg"></MudImage>
+
+
+}

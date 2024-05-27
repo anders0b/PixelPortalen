@@ -1,0 +1,47 @@
+﻿@page "/payment"
+@using PixelPortalen.Domain.Entities
+@using PixelPortalen.Application.Interfaces
+@using System.Text.Json
+
+@inject ISwishService<SwishEntity> SwishService
+@inject NavigationManager NavigationManager
+
+
+<MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Betala</MudText>
+<div class="d-flex justify-content-center">
+    <MudPaper Height="450px" Width="500px" >
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="12" xl="12" Class="mt-5">
+                <MudText Align="Align.Center">Skanna koden nedan för att betala för dina varor!</MudText>
+            </MudItem>
+            <MudItem xs="12" xl="12">
+                @if (ImageBytes != null)
+                {
+                    <div class="d-flex justify-content-center">
+                        <MudImage src="@ImageSource" alt="Image"/>
+                    </div>
+                }
+            </MudItem>
+            <MudItem xs="12" xl="12" Class="mt-5">
+                <MudText Typo="Typo.body2" Align="Align.Center">Glada hälsningar från Börje!</MudText>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</div>
+
+@code {
+    byte[] ImageBytes;
+    string ImageSource => ImageBytes != null ? $"data:image;base64,{Convert.ToBase64String(ImageBytes)}" : "";
+    public HttpContent HttpContent { get; set; }
+    public SwishEntity SwishEntity { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string encodedSwishEntity = NavigationManager.Uri.Split('=')[1];
+        string decodedSwishEntity = System.Net.WebUtility.UrlDecode(encodedSwishEntity); 
+        SwishEntity = JsonSerializer.Deserialize<SwishEntity>(decodedSwishEntity);
+        HttpContent = await SwishService.GetQR(SwishEntity);
+        ImageBytes = await HttpContent.ReadAsByteArrayAsync();
+    }
+
+}

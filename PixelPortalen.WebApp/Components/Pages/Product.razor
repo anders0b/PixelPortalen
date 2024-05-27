@@ -1,0 +1,234 @@
+﻿@page "/product"
+@using PixelPortalen.Application.Interfaces
+@using PixelPortalen.Domain.Entities
+@using PixelPortalen.Domain.Enums
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using PixelPortalen.Infrastructure.DataAccess.Auth
+@using PixelPortalen.WebApp.Components.Dialogs
+@inject IProductService<ProductEntity> ProductService
+@inject ProtectedLocalStorage ProtectedLocalStore
+@inject IOrderService<OrderEntity> OrderService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+
+
+
+
+<PageTitle>Home</PageTitle>
+<MudStack Class="py-5 shadowfont">
+    <MudText Typo="Typo.h3">Våra produkter</MudText>
+    <MudText>Vi på PixelPortalen älskar allt som har med spel att göra. Vi erbjuder ett stort sortiment av de senaste och mest populära spelen.</MudText>
+</MudStack>
+<MudText Typo="Typo.h5">Filter</MudText>
+<MudGrid>
+    <MudItem xs="3">
+        <MudSelect Variant="Variant.Filled" DisableUnderLine="true" T="string" Label="Kategorier" MultiSelection="true"
+                   @bind-SelectedValues="SelectedCategories" SelectAll="true" SelectAllText="Välj alla">
+            <MudVirtualize Items="Categories">
+                <MudSelectItem T="string" Value="@context.ToString()">@context.ToString()</MudSelectItem>
+            </MudVirtualize>
+        </MudSelect>
+    </MudItem>
+    <MudItem xs="3">
+        <MudSelect Variant="Variant.Filled" DisableUnderLine="true" T="string" Label="Åldersgräns" MultiSelection="true"
+                   @bind-SelectedValues="SelectedCategories" SelectAll="true" SelectAllText="Välj alla">
+            <MudVirtualize Items="Ratings">
+                <MudSelectItem T="string" Value="@context.ToString()">@context.ToString()</MudSelectItem>
+            </MudVirtualize>
+        </MudSelect>
+    </MudItem>
+</MudGrid>
+
+<MudDivider Class="pb-5"></MudDivider>
+
+<MudGrid>
+    @if (SelectedCategories.Count() == 0)
+    {
+        <MudVirtualize OverscanCount="6" Items="Products" Context="product">
+            <MudItem Class="d-flex" lg="3" xs="6">
+                <MudCard Style="display: grid;">
+                <MudCardMedia Height="300" Image="@product.ImageUrl"/>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h5">@product.Name</MudText>
+                        <MudRating ReadOnly="true" SelectedValue="@AverageReview(product)" Class="mt-1"/>
+                        @if (product.Percentage == 0)
+                        {
+                            <MudText Typo="Typo.h6">@product.Price kr</MudText>
+                        }
+                        else
+                        {
+                            <MudText Color="Color.Error" Class="mud-secondary-text" Typo="Typo.h6">@getPercentage(product.Price,
+                                                                                                       product.Percentage) kr</MudText>
+                        }
+                        @foreach (var category in product.Categories)
+                        {
+                            <MudChip Class="ms-0" Size="Size.Small" Color="Color.Default">@category.ToString()</MudChip>
+                        }
+                    </MudCardContent>
+                    <MudCardActions Class="pt-0">
+                        <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Primary"
+                                   OnClick="@(() => SaveStateAsync(product, 1))">Lägg i kundvagn</MudButton>
+                        <MudButton OnClick="@(() => ReadMore(product))" Variant="Variant.Filled" Color="Color.Secondary">Läs mer</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        </MudVirtualize>
+    }
+    else
+    {
+        <MudVirtualize OverscanCount="6" Context="product" Items="Products.Where(product =>
+    product.Categories.Any(category => SelectedCategories.Contains(category.ToString()))).ToList()">
+            <MudItem Class="d-flex" lg="3" xs="6">
+                <MudCard Style="display: grid;">
+                    <MudCardMedia Image="@product.ImageUrl" />
+                    <MudCardContent Class="mb-2">
+                        <MudRating ReadOnly="true" SelectedValue="@AverageReview(product)" Class="mt-1" />
+                        <MudText Typo="Typo.h5">@product.Name</MudText>
+                        @if (product.Percentage == 0)
+                        {
+                            <MudText Typo="Typo.h6">@product.Price kr</MudText>
+                        }
+                        else
+                        {
+                            <MudText Color="Color.Error" Class="mud-secondary-text" Typo="Typo.h6">@getPercentage(product.Price,
+                                                                                                       product.Percentage) kr</MudText>
+                        }
+                        @foreach (var category in product.Categories)
+                        {
+                            <MudChip Class="ms-0" Size="Size.Small" Color="Color.Primary">@category.ToString()</MudChip>
+                        }
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Primary"
+                            OnClick="@(() => SaveStateAsync(product, 1))">Lägg i kundvagn</MudButton>
+                        <MudButton OnClick="@(() => ReadMore(product))" Variant="Variant.Filled" Color="Color.Secondary">Läs mer</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        </MudVirtualize>
+    }
+
+</MudGrid>
+
+
+@code
+{
+
+    protected async override Task OnInitializedAsync()
+    {
+        Products.AddRange(await ProductService.GetAllProducts());
+    }
+
+    public async Task SaveStateAsync(ProductEntity product, int quantity)
+    {
+        var loggedInUserId = await ProtectedLocalStore.GetAsync<ApplicationUser>("user");
+        var potentialOrder = await ProtectedLocalStore.GetAsync<OrderEntity>("order");
+        var cart = await ProtectedLocalStore.GetAsync<List<ProductEntity>>("cart");
+        Cart = cart.Success ? cart.Value : Cart = new List<ProductEntity>();
+
+        if (loggedInUserId.Success) // If user is logged in
+        {
+            var usersOrder = await OrderService.GetByUserIdAsync(loggedInUserId.Value.Id);
+            var openOrder = usersOrder.FirstOrDefault(order => order.Open);
+            if (openOrder == null)
+            {
+                var newOrder = new OrderEntity() { UserId = Guid.Parse(loggedInUserId.Value.Id), Open = true };
+                newOrder = await OrderService.CreateOrderAsync(newOrder);
+                newOrder.UserId = Guid.Parse(loggedInUserId.Value.Id);
+                newOrder.Open = true;
+                newOrder.OrderDate = DateTime.Now;
+                var newOrderItem = new OrderItemEntity() { OrderId = newOrder.Id, ProductId = product.Id, Quantity = quantity };
+                newOrder.OrderItems.Add(newOrderItem);
+                await OrderService.CreateOrderItemAsync(newOrderItem);
+                Cart.Add(product);
+                await ProtectedLocalStore.SetAsync("cart", Cart);
+            }
+            else
+            {
+                var newOrderItem = new OrderItemEntity() { OrderId = openOrder.Id, ProductId = product.Id, Quantity = quantity };
+                openOrder.OrderItems.Add(newOrderItem);
+                await OrderService.CreateOrderItemAsync(newOrderItem);
+                Cart.Add(product);
+                await ProtectedLocalStore.SetAsync("cart", Cart);
+            }
+
+            
+        }
+        else
+        {
+            if (potentialOrder.Success) // If guest has an active cart
+            {
+                var newOrderItem = new OrderItemEntity()
+                    {
+                        OrderId = potentialOrder.Value.Id,
+                        ProductId = product.Id,
+                        Quantity =
+                    quantity
+                    };
+                potentialOrder.Value.OrderItems.Add(newOrderItem);
+                await OrderService.CreateOrderItemAsync(newOrderItem);
+                await ProtectedLocalStore.SetAsync("order", potentialOrder.Value);
+                Cart.Add(product);
+                await ProtectedLocalStore.SetAsync("cart", Cart);
+            }
+            else
+            {
+                var newOrder = new OrderEntity() { Open = true };
+                newOrder = await OrderService.CreateOrderAsync(newOrder);
+                newOrder.Open = true;
+                newOrder.OrderDate = DateTime.Now;
+                var newOrderItem = new OrderItemEntity() { OrderId = newOrder.Id, ProductId = product.Id, Quantity = quantity };
+                newOrder.OrderItems.Add(newOrderItem);
+                await OrderService.CreateOrderItemAsync(newOrderItem);
+                await ProtectedLocalStore.SetAsync("order", newOrder);
+                Cart.Add(product);
+                await ProtectedLocalStore.SetAsync("cart", Cart);
+            }
+        }
+        Snackbar.Add("Du har lagt till produkten i kundvagnen", Severity.Success);
+
+    }
+
+    public List<ProductEntity> Products { get; set; } = new();
+    public IEnumerable<string> SelectedCategories { get; set; } = new HashSet<string>();
+    public List<Category> Categories { get; set; } = new() { Category.Action, Category.Adventure, Category.Puzzle,
+Category.RPG, Category.Simulation, Category.Strategy, Category.Sports, Category.MMO };
+    public OrderEntity OrderEntity { get; set; }
+    public List<Rating> Ratings { get; set; }
+    public List<ProductEntity> Cart { get; set; } = new();
+    public int Quantity { get; set; }
+    public ApplicationUser ApplicationUser { get; set; }
+
+
+
+    private object getPercentage(double productPrice, int productPercentage)
+    {
+        double discountAmount = productPrice * productPercentage / 100;
+        double discountedPrice = productPrice - discountAmount;
+        return discountedPrice;
+    }
+
+    private void ReadMore(ProductEntity product)
+    {
+        var parameters = new DialogParameters<ProductReadMoreDialog>();
+        parameters.Add(x => x.product, product);
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        DialogService.Show<ProductReadMoreDialog>(product.Name, parameters, options);
+    }
+    private int AverageReview(ProductEntity product)
+    {
+        var reviews = product.Reviews;
+        var sum = 0;
+        foreach (var review in reviews)
+        {
+            sum += review.Rating;
+        }
+        if (reviews.Count == 0)
+        {
+            return 0;
+        }
+        var average = sum / reviews.Count;
+        return average;
+    }
+}

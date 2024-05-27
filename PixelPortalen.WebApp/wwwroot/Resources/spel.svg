@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 406.13 188.25">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#linear-gradient);
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4, .cls-5, .cls-6 {
+        stroke-width: 0px;
+      }
+
+      .cls-2 {
+        fill: url(#linear-gradient-2);
+      }
+
+      .cls-3 {
+        fill: url(#linear-gradient-3);
+      }
+
+      .cls-4 {
+        fill: #333;
+      }
+
+      .cls-5 {
+        fill: url(#linear-gradient-4);
+      }
+
+      .cls-6 {
+        fill: #4d4d4d;
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="54.48" y1="153.99" x2="54.48" y2="8.73" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffc2bf"/>
+      <stop offset=".11" stop-color="#ffc0bd"/>
+      <stop offset=".15" stop-color="#ffb9b7"/>
+      <stop offset=".18" stop-color="#ffadad"/>
+      <stop offset=".18" stop-color="#faa"/>
+      <stop offset=".27" stop-color="#ffa8a7"/>
+      <stop offset=".32" stop-color="#ffa1a0"/>
+      <stop offset=".35" stop-color="#ff9693"/>
+      <stop offset=".37" stop-color="#ff8582"/>
+      <stop offset=".38" stop-color="#ff837f"/>
+      <stop offset=".54" stop-color="#ff817d"/>
+      <stop offset=".6" stop-color="#ff7a76"/>
+      <stop offset=".64" stop-color="#ff6e6b"/>
+      <stop offset=".67" stop-color="#ff5d5b"/>
+      <stop offset=".7" stop-color="#ff4747"/>
+      <stop offset=".71" stop-color="#ff3f3f"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="147.87" x2="147.87" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-3" x1="241.26" x2="241.26" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-4" x1="334.65" x2="334.65" xlink:href="#linear-gradient"/>
+  </defs>
+  <g>
+    <g>
+      <path class="cls-6" d="M21.5,166.75v-20.68h51.86v-10.42h10.34v-20.76h-10.34v-10.34h-31.19v-10.42h-10.34v-10.34h-10.34v-41.53h10.34v-10.42h10.34v-10.34h62.29v20.76h-51.86v10.34h-10.42v20.76h10.42v10.42h31.1v10.34h10.42v10.42h10.34v41.53h-10.34v10.34h-10.42v10.34H21.5Z"/>
+      <path class="cls-4" d="M104.46,21.5v20.76h-51.86v10.34h-10.42v20.76h10.42v10.42h31.1v10.34h10.42v10.42h10.34v41.53h-10.34v10.34h-10.42v10.34H21.5v-20.68h51.86v-10.42h10.34v-20.76h-10.34v-10.34h-31.19v-10.42h-10.34v-10.34h-10.34v-41.53h10.34v-10.42h10.34v-10.34h62.29M125.96,0H20.68v10.34h-10.34v10.42H0v84.52h10.34v10.34h10.34v8.96H0v63.67h105.2v-10.34h10.42v-10.34h10.34v-84.52h-10.34v-10.42h-10.42v-8.87h20.76V0h0Z"/>
+    </g>
+    <g>
+      <path class="cls-6" d="M114.89,166.75V21.5h62.2v10.34h10.42v10.42h10.34v41.53h-10.34v10.34h-10.42v10.42h-41.53v62.2h-20.68ZM166.75,83.79v-10.42h10.34v-20.76h-10.34v-10.34h-31.19v41.53h31.19Z"/>
+      <path class="cls-4" d="M177.09,21.5v10.34h10.42v10.42h10.34v41.53h-10.34v10.34h-10.42v10.42h-41.53v62.2h-20.68V21.5h62.2M135.57,83.79h31.19v-10.42h10.34v-20.76h-10.34v-10.34h-31.19v41.53M198.59,0h-105.2v188.25h63.67v-62.2h41.53v-10.42h10.42v-10.34h10.34V20.76h-10.34v-10.42h-10.42V0h0Z"/>
+    </g>
+    <g>
+      <path class="cls-6" d="M208.28,166.75V21.5h82.97v20.76h-62.29v41.53h51.95v20.76h-51.95v41.53h62.29v20.68h-82.97Z"/>
+      <path class="cls-4" d="M291.25,21.5v20.76h-62.29v41.53h51.95v20.76h-51.95v41.53h62.29v20.68h-82.97V21.5h82.97M312.74,0h-125.96v188.25h125.96v-63.67h-10.34v-60.82h10.34V0h0Z"/>
+    </g>
+    <g>
+      <path class="cls-6" d="M301.67,166.75V21.5h20.68v124.58h62.29v20.68h-82.97Z"/>
+      <path class="cls-4" d="M322.35,21.5v124.58h62.29v20.68h-82.97V21.5h20.68M343.84,0h-63.67v188.25h125.96v-63.67h-62.29V0h0Z"/>
+    </g>
+  </g>
+  <g>
+    <path class="cls-1" d="M13,153.99v-20.68h51.86v-10.42h10.34v-20.76h-10.34v-10.34h-31.19v-10.42h-10.34v-10.34h-10.34V29.49h10.34v-10.42h10.34v-10.34h62.29v20.76h-51.86v10.34h-10.42v20.76h10.42v10.42h31.1v10.34h10.42v10.42h10.34v41.53h-10.34v10.34h-10.42v10.34H13Z"/>
+    <path class="cls-2" d="M106.39,153.99V8.73h62.2v10.34h10.42v10.42h10.34v41.53h-10.34v10.34h-10.42v10.42h-41.53v62.2h-20.68ZM158.25,71.02v-10.42h10.34v-20.76h-10.34v-10.34h-31.19v41.53h31.19Z"/>
+    <path class="cls-3" d="M199.78,153.99V8.73h82.97v20.76h-62.29v41.53h51.95v20.76h-51.95v41.53h62.29v20.68h-82.97Z"/>
+    <path class="cls-5" d="M293.17,153.99V8.73h20.68v124.58h62.29v20.68h-82.97Z"/>
+  </g>
+</svg>

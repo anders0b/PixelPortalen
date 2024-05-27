@@ -1,0 +1,91 @@
+﻿@page "/event-history"
+@using PixelPortalen.Infrastructure.DataAccess.Auth
+@using Microsoft.AspNetCore.Identity
+@using PixelPortalen.Application.Interfaces
+@using PixelPortalen.Domain.Entities
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using PixelPortalen.WebApp.Components.Dialogs
+@inject UserManager<ApplicationUser> UserManager
+@inject IEventService<EventEntity> EventService
+@inject ProtectedLocalStorage ProtectedLocalStore
+@inject IDialogService DialogService
+@inject NavigationManager _navigationManager
+
+
+<div hidden="true">
+    <AuthorizeView>
+        @GetUser(@context)
+    </AuthorizeView>
+</div>
+<PageTitle>Mina evenemang</PageTitle>
+<MudText Typo="Typo.h5">@EmptyMessage</MudText>
+    <Virtualize ItemsProvider="ItemsProvider">
+        <MudCard>
+            <MudCardContent>               
+                <MudText Typo="Typo.h5">@context.Name</MudText>
+                <MudText Typo="Typo.h5">@context.EventDate.ToShortDateString()</MudText>
+                <MudChip Icon="@Icons.Material.Filled.Wallet" Color="Color.Info">@context.Price kr</MudChip>
+                <MudChip Icon="@Icons.Material.Filled.CreditCard" Color="Color.Success">Anmälningsavgift betald</MudChip>
+                <MudText>@context.EventDescription</MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton OnClick="(() => RemoveFromEvent(context))" Color="Color.Error" Variant="Variant.Filled">Avanmäl</MudButton>
+            </MudCardActions>
+        </MudCard>
+        </Virtualize>
+
+@code {
+    private List<EventEntity> Events = new List<EventEntity>();
+    private string userId { get; set; }
+    private string EmptyMessage { get; set; } = "Laddar evenemang...";
+
+    public async Task GetUser(AuthenticationState context)
+    {
+        var user = context.User;
+        var applicationUser = await UserManager.GetUserAsync(user);
+        userId = applicationUser.Id;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var potentialUserId = await ProtectedLocalStore.GetAsync<ApplicationUser>("user");
+            userId = potentialUserId.Value.Id;
+            StateHasChanged();
+        }
+    }
+    private async ValueTask<ItemsProviderResult<EventEntity>> ItemsProvider(ItemsProviderRequest request)
+    {
+        Events.Clear();
+        Events.AddRange(await EventService.GetByUserIdAsync(userId));
+        var numOrderProducts = Events.Count;
+        if(numOrderProducts == 0)
+        {
+            EmptyMessage = "Du har inte anmält dig till några evenemang";
+        }
+        else
+        {
+            EmptyMessage = "";
+        }
+        StateHasChanged();
+
+        return new ItemsProviderResult<EventEntity>(Events,numOrderProducts);
+    }
+    private async Task RemoveFromEvent(EventEntity eventItem)
+    {
+        eventItem.userIds.Remove(userId);
+        await EventService.UpdateUserToEvent(eventItem);
+        Events.Remove(eventItem);
+        StateHasChanged();
+        var parameters = new DialogParameters<ReadMoreDialog>();
+        parameters.Add(x => x.ContentText, $"Avanmäld. Kontakta Börje för att få anmälningsavgiften {eventItem.Price * 0.10} kr tillbaka");
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        DialogService.Show<ReadMoreDialog>(eventItem.Name, parameters, options);
+        await Task.Delay(2000);
+        _navigationManager.NavigateTo("/event-history", true);
+
+    }
+
+}
+   

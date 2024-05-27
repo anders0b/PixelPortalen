@@ -1,0 +1,37 @@
+﻿:root {
+    --mud-palette-primary: #465E99 !important;
+    --mud-palette-primary-darken: #4E7CE6 !important;
+    --mud-palette-primary-lighten: #FECDA6 !important;
+    /*--mud-palette-text-primary: #8b4513 !important;*/
+    --mud-palette-secondary: #E67800 !important;
+    --mud-palette-secondary-darken: #BB6100 !important;
+    --mud-palette-secondary-lighten: #86A7FC !important;
+    /*    --mud-palette-primary-text: #8b4513 !important;
+*/
+    --mud-typography-default-family: "Karma", serif !important;
+    --mud-typography-default-weight: 500 !important;
+    --mud-typography-h1-family: "Karma", serif !important;
+    --mud-typography-h1-weight: 700 !important;
+    --mud-typography-body1-family: "Karma", serif !important;
+    --mud-typography-body1-family: "Karma", serif !important;
+    --mud-typography-h3-family: "Karma", serif !important;
+    --mud-typography-h3-weight: 700 !important;
+    --mud-typography-body1-weight: 500 !important;
+    --mud-typography-h2-family: "Karma", serif !important;
+    --mud-typography-h2-weight: 700 !important;
+    --mud-typography-h5-family: "Karma", serif !important;
+    --mud-typography-h5-weight: 500 !important;
+}
+.glassbox {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    /*you can adjust here how blurry you want your "form!" */
+    border-radius: 10px;
+    padding: 20px;
+    width: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    color: #fff;
+}
+.shadowfont {
+    text-shadow: 2px 2px 4px #000000;
+}

@@ -1,0 +1,166 @@
+﻿@using PixelPortalen.Domain.Entities
+@using PixelPortalen.Application.Interfaces
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject IProductService<ProductEntity> ProductService
+@inject ProtectedLocalStorage ProtectedLocalStore
+@inject IOrderService<OrderEntity> OrderService
+@inject ISnackbar Snackbar
+
+
+<MudDialog>
+    <DialogContent>
+        <MudCard>
+            <MudImage Fluid="true" Src="@product.ImageUrl"></MudImage>
+            <MudCardContent>
+                <MudRating ReadOnly="true" SelectedValue="@AverageReview(product)" Class="mt-1" />
+                @if (product.Percentage == 0)
+                {
+                    <MudText Typo="Typo.h6">@product.Price kr</MudText>
+                }
+                else
+                {
+                    <MudText Color="Color.Error" Class="mud-secondary-text" Typo="Typo.h6">@getPercentage(product.Price,
+                                                                                               product.Percentage) kr</MudText>
+                }
+                @foreach (var category in product.Categories)
+                {
+                    <MudChip Class="ms-0" Size="Size.Small" Color="Color.Default">@category.ToString()</MudChip>
+                }
+                <MudText Typo="Typo.body1">@product.Description</MudText>
+                <MudDivider Class="my-2" />
+                <MudText Typo="Typo.h5">Specifikationer</MudText>
+                <MudText Typo="Typo.h6">EAN</MudText>
+                <MudText Typo="Typo.body1">@product.EAN</MudText>
+                <MudText Typo="Typo.h6">System</MudText>
+                <MudText Typo="Typo.body1">@product.System</MudText>
+                <MudDivider Class="my-2" />
+                <MudText Typo="Typo.h5">Recensioner</MudText>
+                <MudContainer Class="p-0" Style="max-height: 130px; overflow-y: scroll">
+                @if(product.Reviews.Count == 0)
+                {
+                    <MudText Typo="Typo.body1">Inga recensioner ännu</MudText>
+                }
+                else
+                {
+                    <MudVirtualize Items="product.Reviews">
+                        <MudPaper Class="my-2">
+                            <MudText Class="p-1" Typo="Typo.h6">Glad användare</MudText>
+                            <MudRating Class="p-1" ReadOnly="true" SelectedValue="@context.Rating" />
+                                <MudText Class="p-1" Typo="Typo.body1">@context.Comment</MudText>
+                        </MudPaper>
+                    </MudVirtualize>
+                }
+                </MudContainer>
+            </MudCardContent>
+        </MudCard>    
+        </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="@(() => SaveStateAsync(product, 1))">Lägg i kundvagn</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="Submit">Stäng</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public ProductEntity product { get; set; }
+    public List<ProductEntity> Cart { get; set; } = new();
+
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+
+    private object getPercentage(double productPrice, int productPercentage)
+    {
+        double discountAmount = productPrice * productPercentage / 100;
+        double discountedPrice = productPrice - discountAmount;
+        return discountedPrice;
+    }
+    private int AverageReview(ProductEntity product)
+    {
+        var reviews = product.Reviews;
+        var sum = 0;
+        foreach (var review in reviews)
+        {
+            sum += review.Rating;
+        }
+        if (reviews.Count == 0)
+        {
+            return 0;
+        }
+        var average = sum / reviews.Count;
+        return average;
+    }
+
+    public async Task SaveStateAsync(ProductEntity product, int quantity)
+    {
+        var loggedInUserId = await ProtectedLocalStore.GetAsync<string>("userId");
+        var potentialOrder = await ProtectedLocalStore.GetAsync<OrderEntity>("order");
+        var cart = await ProtectedLocalStore.GetAsync<List<ProductEntity>>("cart");
+        Cart = cart.Success ? cart.Value : Cart = new List<ProductEntity>();
+
+        if (loggedInUserId.Success) // If user is logged in
+        {
+            var usersOrder = await OrderService.GetByUserIdAsync(loggedInUserId.Value);
+            var openOrder = usersOrder.FirstOrDefault(order => order.Open);
+            if (openOrder == null)
+            {
+                var newOrder = new OrderEntity() { UserId = Guid.Parse(loggedInUserId.Value), Open = true };
+                newOrder = await OrderService.CreateOrderAsync(newOrder);
+                newOrder.UserId = Guid.Parse(loggedInUserId.Value);
+                newOrder.Open = true;
+                newOrder.OrderDate = DateTime.Now;
+                var newOrderItem = new OrderItemEntity() { OrderId = newOrder.Id, ProductId = product.Id, Quantity = quantity };
+                newOrder.OrderItems.Add(newOrderItem);
+                await OrderService.CreateOrderItemAsync(newOrderItem);
+                Cart.Add(product);
+                await ProtectedLocalStore.SetAsync("cart", Cart);
+            
+            }
+            else
+            {
+                var newOrderItem = new OrderItemEntity() { OrderId = openOrder.Id, ProductId = product.Id, Quantity = quantity };
+                openOrder.OrderItems.Add(newOrderItem);
+                await OrderService.CreateOrderItemAsync(newOrderItem);
+                Cart.Add(product);
+                await ProtectedLocalStore.SetAsync("cart", Cart);
+               
+            }
+
+        }
+        else
+        {
+            if (potentialOrder.Success) // If guest has an active cart
+            {
+                var newOrderItem = new OrderItemEntity()
+                    {
+                        OrderId = potentialOrder.Value.Id,
+                        ProductId = product.Id,
+                        Quantity =
+                        quantity
+                    };
+                potentialOrder.Value.OrderItems.Add(newOrderItem);
+                await OrderService.CreateOrderItemAsync(newOrderItem);
+                await ProtectedLocalStore.SetAsync("order", potentialOrder.Value);
+                Cart.Add(product);
+                await ProtectedLocalStore.SetAsync("cart", Cart);
+               
+            }
+            else
+            {
+                var newOrder = new OrderEntity() { Open = true };
+                newOrder = await OrderService.CreateOrderAsync(newOrder);
+                newOrder.Open = true;
+                newOrder.OrderDate = DateTime.Now;
+                var newOrderItem = new OrderItemEntity() { OrderId = newOrder.Id, ProductId = product.Id, Quantity = quantity };
+                newOrder.OrderItems.Add(newOrderItem);
+                await OrderService.CreateOrderItemAsync(newOrderItem);
+                await ProtectedLocalStore.SetAsync("order", newOrder);
+                Cart.Add(product);
+                await ProtectedLocalStore.SetAsync("cart", Cart);
+            
+            }
+        }
+        Snackbar.Add("Du har lagt till produkten i kundvagnen", Severity.Success);
+
+
+    }
+}

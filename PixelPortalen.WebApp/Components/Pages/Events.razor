@@ -1,0 +1,129 @@
+﻿@page "/events"
+@inject IEventService<EventEntity> EventService
+@inject ProtectedLocalStorage ProtectedLocalStore
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@using PixelPortalen.Domain.Entities
+@using PixelPortalen.Application.Interfaces
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using PixelPortalen.Infrastructure.DataAccess.Auth
+@using PixelPortalen.WebApp.Components.Dialogs
+<MudStack Class="py-5 shadowfont">
+    <MudText Typo="Typo.h3">Evenemang</MudText>
+        <MudText>Vi på PixelPalatset älskar allt som har med spel att göra. Det inkluderar även att träffas fysiskt och hänga. Vi arrangerar LAN och andra evenemang där vi bjuder in till gaming och snack. Här ser du uppkommande evenemang.</MudText>
+        <MudText Typo="Typo.h4">Kommande evenemang</MudText>
+    </MudStack>
+    @if (EventList.Count == 0)
+    {
+        <MudText>Just nu finns det inga kommande evenemang, kom tillbaka senare! </MudText>
+    }
+    else
+    {
+        <MudGrid Class="align-center">
+            <MudVirtualize Items="EventList" Context="eventItem">
+                <MudItem Class="mud-theme-primary" lg="1" md="12" xs="12">
+                    <MudText Typo="Typo.h6">@eventItem.EventDate.DayOfWeek @eventItem.EventDate.Day/@eventItem.EventDate.Month</MudText>
+                </MudItem>
+                <MudItem xs="12" lg="3">
+                    <MudImage Fluid="true" Src=".\Resources\campaign-banner-66178cc17ba9a.jpg"></MudImage>
+                </MudItem>
+                <MudItem lg="4">
+                    <MudPaper Class="p-2">
+                        <MudText Typo="Typo.h5">@eventItem.Name</MudText>
+                        <MudText Typo="Typo.body1">@eventItem.EventDescription.Substring(0, 50)..<MudButton OnClick="@(() => ReadMoreBtn(eventItem))" Variant="Variant.Text" Color="Color.Secondary">Läs mer</MudButton>
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem lg="2">
+                    @if (eventItem.userIds.Count == eventItem.AvailableSlots)
+                    {
+                        <MudChip Icon="@Icons.Material.Filled.Person" Color="Color.Error">@eventItem.userIds.Count / @eventItem.AvailableSlots anmälda</MudChip>
+                    }
+                    else
+                    {
+                        <MudChip Icon="@Icons.Material.Filled.Person" Color="Color.Success">@eventItem.userIds.Count / @eventItem.AvailableSlots anmälda</MudChip>
+                    }
+                    <MudChip Icon="@Icons.Material.Filled.Wallet" Color="Color.Info">@eventItem.Price kr</MudChip>
+                    <MudChip Icon="@Icons.Material.Filled.AccessTimeFilled" Color="Color.Warning">@eventItem.EventDate.Hour:@eventItem.EventDate.Minute</MudChip>
+                </MudItem>
+                <MudItem lg="2">
+@*                     <MudButton OnClick="(() => ClearUsers(eventItem))">Rensa</MudButton>
+ *@                    <AuthorizeView>
+                        <Authorized>
+                            @if (eventItem.userIds.Contains(userId))
+                            {
+                                <MudButton Disabled="true" Variant="Variant.Filled" Color="Color.Primary">Du är redan anmäld</MudButton>
+                            }
+                            else if (eventItem.userIds.Count == eventItem.AvailableSlots)
+                            {
+                                <MudButton Disabled="true" Variant="Variant.Filled" Color="Color.Primary">Fullt</MudButton>
+                            }
+                            else
+                            {
+                                <MudButton Disabled="false" OnClick="@(() => AddUserToEvent(eventItem))" Variant="Variant.Filled" Color="Color.Primary">Anmäl dig här</MudButton>
+                            }
+                        </Authorized>
+                        <NotAuthorized>
+                            <MudButton Disabled="true" Variant="Variant.Filled" Color="Color.Primary">Logga in för anmälan</MudButton>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                </MudItem>
+            </MudVirtualize>
+        </MudGrid>
+    }
+
+
+@code {
+    public List<EventEntity> EventList { get; set; } = new();
+    private string userId { get; set; }
+    public static bool checkBool { get; set; } = false;
+
+    override protected async Task OnInitializedAsync()
+    {
+        EventList.AddRange(await EventService.GetAllAsync());
+    }
+    override protected async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var potentialUserId = await ProtectedLocalStore.GetAsync<ApplicationUser>("user");
+        if (potentialUserId.Success)
+        {
+            userId = potentialUserId.Value.Id;
+        }
+
+    }
+    private async Task AddUserToEvent(EventEntity eventItem)
+    {
+        var potentialUserId = await ProtectedLocalStore.GetAsync<ApplicationUser>("user");
+        userId = potentialUserId.Value.Id;
+        if (potentialUserId.Success)
+        {
+            PaymentDialog(eventItem, potentialUserId.Value.Id);
+        }
+    }
+
+    private void ReadMoreBtn(EventEntity eventItem)
+    {
+        var parameters = new DialogParameters<ReadMoreDialog>();
+        parameters.Add(x => x.ContentText, eventItem.EventDescription);
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        DialogService.Show<ReadMoreDialog>(eventItem.Name, parameters, options);
+    }
+
+    private void PaymentDialog(EventEntity eventItem, string userGuid)
+    {
+        var parameters = new DialogParameters<PaymentDialogEvent>();
+        parameters.Add(x => x.ContentText, $"Betala anmälningsavgift {eventItem.Price * 0.10} kr");
+        parameters.Add(x => x.UserGuid, userGuid);
+        parameters.Add(x => x.EventEntity, eventItem);
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        DialogService.Show<PaymentDialogEvent>(eventItem.Name, parameters, options);
+    }
+
+    private async Task ClearUsers(EventEntity eventEntity)
+    {
+        eventEntity.userIds.Clear();
+        await EventService.UpdateUserToEvent(eventEntity);
+
+    }
+
+}

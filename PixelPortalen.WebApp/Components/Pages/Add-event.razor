@@ -1,0 +1,95 @@
+﻿@page "/add-event"
+@inject HttpClient httpClient
+@using PixelPortalen.Application.Interfaces
+@using PixelPortalen.Domain.Entities
+@using PixelPortalen.Domain.Enums
+@inject NavigationManager NavigationManager
+@inject IEventService<EventEntity> eventService
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+@inject NavigationManager NavigationManager
+
+<PageTitle>Admin - Add Event</PageTitle>
+
+    <h1>Add New Event</h1>
+    
+        <div class="card-body">
+            <EditForm Model="@newEvent" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="mb-3">
+                    <label for="name" class="form-label">Event Name:</label>
+                    <InputText class="form-control" id="name" @bind-Value="newEvent.Name" />
+                </div>
+                <div class="mb-3">
+                    <label for="description (more than 80 letter)" class="form-label">Event Description:</label>
+                    <InputTextArea class="form-control" id="description" @bind-Value="newEvent.EventDescription" />
+                </div>
+                <div class="mb-3">
+                    <label for="eventDateTime" class="form-label">Event Date and Time:</label>
+                    <InputText type="datetime-local" class="form-control" id="eventDateTime" @bind-Value="eventDateTimeString" />
+                </div>
+                <div class="mb-3">
+                    <label for="price" class="form-label">Price:</label>
+                    <InputNumber class="form-control" id="price" @bind-Value="newEvent.Price" />
+                </div>
+                <div class="mb-3">
+                    <label for="slots" class="form-label">Available Slots:</label>
+                    <InputNumber class="form-control" id="slots" @bind-Value="newEvent.AvailableSlots" />
+                </div>
+                <div class="mb-3">
+                    <label for="promotionPercentage" class="form-label">Promotion Percentage:</label>
+                    <InputNumber class="form-control" id="promotionPercentage" @bind-Value="newEvent.Promotion.PercentageOff" />
+                </div>
+                <div class="mb-3">
+                    <label for="promotionDescription" class="form-label">Promotion Description (optional):</label>
+                    <InputTextArea class="form-control" id="promotionDescription" @bind-Value="newEvent.Promotion.PromotionDescription" />
+                </div>
+                <div class="mb-3">
+                    <label for="promotionDateTime" class="form-label">Promotion Date and Time:</label>
+                    <InputText type="datetime-local" class="form-control" id="promotionDateTime" @bind-Value="promotionDateTimeString" />
+                </div>
+                <div class="mb-3 form-check">
+                    <InputCheckbox class="form-check-input" id="open" @bind-Value="newEvent.Open" />
+                    <label class="form-check-label" for="open">Open Event</label>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Event</button>
+            </EditForm>
+        </div>
+    
+
+
+@code {
+    private EventEntity newEvent = new EventEntity
+        {
+            Promotion = new PromotionEntity() 
+        };
+    private string eventDateTimeString;
+    private string promotionDateTimeString;
+
+    private async Task HandleValidSubmit()
+    {
+        if (DateTime.TryParse(eventDateTimeString, out var eventDateTime))
+        {
+            newEvent.EventDate = TimeZoneInfo.ConvertTimeToUtc(eventDateTime, TimeZoneInfo.Local);
+        }
+        if (DateTime.TryParse(promotionDateTimeString, out var promotionDateTime))
+        {
+            newEvent.Promotion.DateTime = TimeZoneInfo.ConvertTimeToUtc(promotionDateTime, TimeZoneInfo.Local);
+        }
+
+        try
+        {
+            await eventService.AddAsync(newEvent);
+            newEvent = new EventEntity { Promotion = new PromotionEntity() }; // Reset the form
+            eventDateTimeString = ""; 
+            promotionDateTimeString = "";
+        }
+        catch (Exception ex)
+        {
+            
+            Console.Error.WriteLine($"An error occurred: {ex.Message}");
+        }
+    }
+}

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 588.17 177.05">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#linear-gradient);
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4, .cls-5, .cls-6, .cls-7, .cls-8 {
+        stroke-width: 0px;
+      }
+
+      .cls-2 {
+        fill: url(#linear-gradient-6);
+      }
+
+      .cls-3 {
+        fill: url(#linear-gradient-5);
+      }
+
+      .cls-4 {
+        fill: url(#linear-gradient-2);
+      }
+
+      .cls-5 {
+        fill: url(#linear-gradient-3);
+      }
+
+      .cls-6 {
+        fill: #333;
+      }
+
+      .cls-7 {
+        fill: url(#linear-gradient-4);
+      }
+
+      .cls-8 {
+        fill: #4d4d4d;
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="49.23" y1="147.39" x2="49.23" y2="10.35" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#d4f6ff"/>
+      <stop offset=".1" stop-color="#d2f5ff"/>
+      <stop offset=".13" stop-color="#cbf1ff"/>
+      <stop offset=".16" stop-color="#bfebff"/>
+      <stop offset=".18" stop-color="#aee3ff"/>
+      <stop offset=".18" stop-color="#aae1ff"/>
+      <stop offset=".27" stop-color="#a7dfff"/>
+      <stop offset=".32" stop-color="#a0d9ff"/>
+      <stop offset=".35" stop-color="#93ceff"/>
+      <stop offset=".37" stop-color="#82bfff"/>
+      <stop offset=".38" stop-color="#7fbdff"/>
+      <stop offset=".54" stop-color="#7dbcff"/>
+      <stop offset=".6" stop-color="#76b9ff"/>
+      <stop offset=".64" stop-color="#6ab4ff"/>
+      <stop offset=".68" stop-color="#59acff"/>
+      <stop offset=".7" stop-color="#43a3ff"/>
+      <stop offset=".71" stop-color="#3fa1ff"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="142.25" x2="142.25" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-3" x1="235.19" x2="235.19" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-4" x1="333.1" x2="333.1" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-5" x1="431" x2="431" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-6" x1="519.11" x2="519.11" xlink:href="#linear-gradient"/>
+  </defs>
+  <g>
+    <g>
+      <path class="cls-8" d="M20.01,157.05V20.01h78.27v19.59h-58.77v39.18h49.01v19.59h-49.01v39.18h58.77v19.51H20.01Z"/>
+      <path class="cls-6" d="M98.28,20.01v19.59h-58.77v39.18h49.01v19.59h-49.01v39.18h58.77v19.51H20.01V20.01h78.27M118.29,0H0v177.05h118.29v-59.52h-9.75v-57.93h9.75V0h0Z"/>
+    </g>
+    <g>
+      <path class="cls-8" d="M147.21,157.05v-9.75h-9.75v-9.75h-9.83v-9.83h-9.75v-9.75h-9.75V20.01h19.51v88.11h9.83v9.83h9.75v9.75h9.83v-9.75h9.75v-9.83h9.83V20.01h19.59v97.94h-9.83v9.75h-9.75v9.83h-9.83v9.75h-9.75v9.75h-9.83Z"/>
+      <path class="cls-6" d="M196.22,20.01v97.94h-9.83v9.75h-9.75v9.83h-9.83v9.75h-9.75v9.75h-9.83v-9.75h-9.75v-9.75h-9.83v-9.83h-9.75v-9.75h-9.75V20.01h19.51v88.11h9.83v9.83h9.75v9.75h9.83v-9.75h9.75v-9.83h9.83V20.01h19.59M216.23,0h-59.6v88.11h-9V0h-59.52v137.96h9.75v9.75h9.75v9.83h9.83v9.75h9.75v9.75h49.85v-9.75h9.75v-9.75h9.83v-9.83h9.75v-9.75h9.83V0h0Z"/>
+    </g>
+    <g>
+      <path class="cls-8" d="M205.98,157.05V20.01h78.27v19.59h-58.77v39.18h49.01v19.59h-49.01v39.18h58.77v19.51h-78.27Z"/>
+      <path class="cls-6" d="M284.25,20.01v19.59h-58.77v39.18h49.01v19.59h-49.01v39.18h58.77v19.51h-78.27V20.01h78.27M304.26,0h-118.29v177.05h118.29v-59.52h-9.75v-57.93h9.75V0h0Z"/>
+    </g>
+    <g>
+      <path class="cls-8" d="M294.08,157.05V20.01h19.51v29.34h9.83v9.83h9.75v9.75h9.83v9.83h9.75v9.75h9.83v9.83h9.75V20.01h19.59v137.04h-19.59v-29.34h-9.75v-9.75h-9.83v-9.83h-9.75v-9.75h-9.83v-9.83h-9.75v-9.75h-9.83v78.27h-19.51Z"/>
+      <path class="cls-6" d="M391.94,20.01v137.04h-19.59v-29.34h-9.75v-9.75h-9.83v-9.83h-9.75v-9.75h-9.83v-9.83h-9.75v-9.75h-9.83v78.27h-19.51V20.01h19.51v29.34h9.83v9.83h9.75v9.75h9.83v9.83h9.75v9.75h9.83v9.83h9.75V20.01h19.59M411.95,0h-59.6v39.18h-8.92v-9.83h-9.83V0h-59.52v177.05h59.52v-39.1h9v9.75h9.75v29.34h59.6V0h0Z"/>
+    </g>
+    <g>
+      <path class="cls-8" d="M431.12,157.05V39.6h-29.34v-19.59h78.27v19.59h-29.34v117.45h-19.59Z"/>
+      <path class="cls-6" d="M480.05,20.01v19.59h-29.34v117.45h-19.59V39.6h-29.34v-19.59h78.27M500.06,0h-118.29v59.6h29.34v117.45h59.6V59.6h29.34V0h0Z"/>
+    </g>
+    <g>
+      <path class="cls-8" d="M489.89,157.05v-19.51h48.93v-9.83h9.75v-19.59h-9.75v-9.75h-29.42v-9.83h-9.75v-9.75h-9.75v-39.18h9.75v-9.83h9.75v-9.75h58.77v19.59h-48.93v9.75h-9.83v19.59h9.83v9.83h29.34v9.75h9.83v9.83h9.75v39.18h-9.75v9.75h-9.83v9.75h-58.68Z"/>
+      <path class="cls-6" d="M568.16,20.01v19.59h-48.93v9.75h-9.83v19.59h9.83v9.83h29.34v9.75h9.83v9.83h9.75v39.18h-9.75v9.75h-9.83v9.75h-58.68v-19.51h48.93v-9.83h9.75v-19.59h-9.75v-9.75h-29.42v-9.83h-9.75v-9.75h-9.75v-39.18h9.75v-9.83h9.75v-9.75h58.77M588.17,0h-98.78v9.75h-9.75v9.83h-9.75v79.19h9.75v9.75h9.75v9h-19.51v59.52h98.7v-9.75h9.83v-9.75h9.75v-79.19h-9.75v-9.83h-9.83v-8.92h19.59V0h0Z"/>
+    </g>
+  </g>
+  <g>
+    <path class="cls-1" d="M10.09,147.39V10.35h78.27v19.59H29.6v39.18h49.01v19.59H29.6v39.18h58.77v19.51H10.09Z"/>
+    <path class="cls-4" d="M137.29,147.39v-9.75h-9.75v-9.75h-9.83v-9.83h-9.75v-9.75h-9.75V10.35h19.51v88.11h9.83v9.83h9.75v9.75h9.83v-9.75h9.75v-9.83h9.83V10.35h19.59v97.94h-9.83v9.75h-9.75v9.83h-9.83v9.75h-9.75v9.75h-9.83Z"/>
+    <path class="cls-5" d="M196.06,147.39V10.35h78.27v19.59h-58.77v39.18h49.01v19.59h-49.01v39.18h58.77v19.51h-78.27Z"/>
+    <path class="cls-7" d="M284.17,147.39V10.35h19.51v29.34h9.83v9.83h9.75v9.75h9.83v9.83h9.75v9.75h9.83v9.83h9.75V10.35h19.59v137.04h-19.59v-29.34h-9.75v-9.75h-9.83v-9.83h-9.75v-9.75h-9.83v-9.83h-9.75v-9.75h-9.83v78.27h-19.51Z"/>
+    <path class="cls-3" d="M421.2,147.39V29.94h-29.34V10.35h78.27v19.59h-29.34v117.45h-19.59Z"/>
+    <path class="cls-2" d="M479.97,147.39v-19.51h48.93v-9.83h9.75v-19.59h-9.75v-9.75h-29.42v-9.83h-9.75v-9.75h-9.75V29.94h9.75v-9.83h9.75v-9.75h58.77v19.59h-48.93v9.75h-9.83v19.59h9.83v9.83h29.34v9.75h9.83v9.83h9.75v39.18h-9.75v9.75h-9.83v9.75h-58.68Z"/>
+  </g>
+</svg>

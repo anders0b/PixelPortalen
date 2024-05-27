@@ -1,0 +1,115 @@
+﻿@page "/edit-event"
+@inject HttpClient httpClient
+@using PixelPortalen.Application.Interfaces
+@using PixelPortalen.Domain.Entities
+@inject NavigationManager NavigationManager
+@inject IEventService<EventEntity> eventService
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+
+
+
+<PageTitle>Edit Event</PageTitle>
+
+@if (events == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (events.Count == 0)
+{
+    <p>No events available to edit.</p>
+}
+else
+{
+    <div class="mb-3">
+        <label for="eventSelect">Choose an Event to Edit:</label>
+        <select @onchange="OnEventSelect" class="form-control" id="eventSelect">
+            <option value="">-- Select an Event --</option>
+            @foreach (var eventItem in events)
+            {
+                <option value="@eventItem.Id">@eventItem.Name</option>
+            }
+        </select>
+    </div>
+
+    @if (selectedEvent != null)
+    {
+        <EditForm Model="@selectedEvent" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="name" class="form-label">Event Name:</label>
+                <InputText class="form-control" id="name" @bind-Value="selectedEvent.Name" />
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Event Description:</label>
+                <InputTextArea class="form-control" id="description" @bind-Value="selectedEvent.EventDescription" />
+            </div>
+            <div class="mb-3">
+                <label for="eventDate" class="form-label">Event Date and Time:</label>
+                <InputText type="datetime-local" class="form-control" id="eventDate" @bind-Value="eventDateTimeString" />
+            </div>
+            <div class="mb-3">
+                <label for="price" class="form-label">Price:</label>
+                <InputNumber class="form-control" id="price" @bind-Value="selectedEvent.Price" />
+            </div>
+            <div class="mb-3">
+                <label for="slots" class="form-label">Available Slots:</label>
+                <InputNumber class="form-control" id="slots" @bind-Value="selectedEvent.AvailableSlots" />
+            </div>
+
+            <button type="submit" class="btn btn-success">Update Event</button>
+            <button @onclick="DeleteEvent" class="btn btn-danger">Delete Event</button>
+        </EditForm>
+    }
+}
+
+@code {
+    private List<EventEntity> events;
+    private EventEntity selectedEvent;
+    private string eventDateTimeString;
+
+    protected override async Task OnInitializedAsync()
+    {
+        events = (await eventService.GetAllAsync()).ToList();
+    }
+
+    private void OnEventSelect(ChangeEventArgs e)
+    {
+        string eventId = e.Value?.ToString();
+        if (!string.IsNullOrEmpty(eventId))
+        {
+            LoadEvent(eventId);
+        }
+    }
+
+    private async void LoadEvent(string eventId)
+    {
+        selectedEvent = await eventService.GetByIdAsync(eventId);
+        if (selectedEvent != null)
+        {
+            eventDateTimeString = selectedEvent.EventDate.ToString("yyyy-MM-ddTHH:mm:ss");
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (DateTime.TryParse(eventDateTimeString, out var eventDateTime))
+        {
+            selectedEvent.EventDate = eventDateTime;
+        }
+
+        await eventService.UpdateAsync(selectedEvent);
+        
+    }
+
+    private async Task DeleteEvent()
+    {
+        if (selectedEvent != null)
+        {
+            await eventService.DeleteAsync(selectedEvent.Id);
+           
+        }
+    }
+}

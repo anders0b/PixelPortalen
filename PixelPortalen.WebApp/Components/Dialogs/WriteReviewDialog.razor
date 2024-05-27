@@ -1,0 +1,64 @@
+﻿@using PixelPortalen.Domain.Entities
+@using PixelPortalen.Application.Interfaces
+@inject IProductService<ProductEntity> ProductService
+@inject NavigationManager _navigationManager
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex flex-column align-center">
+            <MudRating @bind-SelectedValue="selectedVal" HoveredValueChanged="HandleHoveredValueChanged" />
+            <MudText Typo="Typo.subtitle2" Class="deep-purple-text mt-2">@LabelText</MudText>
+            <MudTextField T="string" Label="Skriv din recension" Variant="Variant.Outlined" @bind-Value="@ReviewText" Lines="3" />
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Secondary" OnClick="Submit">Avbryt</MudButton>
+        <MudButton Color="Color.Primary" OnClick="@(() => SendReview())">Skicka</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public ProductEntity product { get; set; }
+    [Parameter] public string userId { get; set; }
+
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    private int selectedVal = 0;
+    private int? activeVal;
+    private string ReviewText { get; set; }
+
+    private void HandleHoveredValueChanged(int? val) => activeVal = val;
+
+    private string LabelText => (activeVal ?? selectedVal) switch
+    {
+        1 => "Riktigt dåligt",
+        2 => "Dåligt",
+        3 => "Okej",
+        4 => "Bra",
+        5 => "Superbra",
+        _ => "Berätta vad du tycker!"
+    };
+    private async Task SendReview()
+    {
+        if (selectedVal == 0)
+        {
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(ReviewText))
+        {
+            return;
+        }
+        var review = new ReviewEntity
+        {
+            ProductId = product.Id,
+            UserId = userId,
+            Rating = selectedVal,
+            Comment = ReviewText
+        };
+        product.Reviews.Add(review);
+        await ProductService.UpdateReviewsAsync(product);
+        MudDialog.Close(DialogResult.Ok(true));
+        _navigationManager.NavigateTo("/myorders", true);
+    }
+}
