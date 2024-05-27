@@ -1,4 +1,4 @@
-<picture><img src="https://github.com/anders0b/PixelPortalen/blob/main/PixelPortalen.WebApp/wwwroot/Resources/new-logo.svg" width="500"></picture
+<picture><img src="https://github.com/anders0b/PixelPortalen/blob/master/PixelPortalen.WebApp/wwwroot/Resources/new-logo.svg" width="500"></picture
 ## About
 Our group project from the course Agile Development, where we were tasked with creating an online store for a fictional local game store. During two sprints we achieved the following features:
 - Databases for saving products and events.
